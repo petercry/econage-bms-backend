@@ -1,0 +1,167 @@
+
+server:
+  port: 8081
+#logging:
+#  config: classpath:logback-prod-debug.xml
+econage:
+  standard:
+    brick:
+      pmBasic:
+        enabled: true
+  rest-proxy:
+    httpClient:
+      ssl:
+        use-insecure-trust-manager: true
+  preview-server:
+    #预览-idoc方式配置
+    idoc-view:
+      #生效
+      enabled: true
+      #idoc服务器地址
+      serverTarget: http://idocv.econage.xyz:6600
+      fileManagerServerTarget: http://192.168.10.129:8081
+  bms:
+    enabled: true
+    afhwc:
+      remoting:
+        enabled: true
+        clientId: febc1c45-9984-42dc-a720-92a3d78dde16
+        clientSecret: mwDhErx2Pxit
+        anonymousAccount: 13999999999
+        serverTarget: https://af.flowyun.com
+  elasticsearch:
+    rest:
+      enabled: true
+  wh-88:
+    enabled: false
+  88-crm:
+    enabled: false
+    
+  security:
+    pwd-pattern: (?=.*[0-9])(?=.*[a-z])(?=.*[A-Z]).{6,18}
+    auth-token-setting:
+      token-secret: 1234-abcd-4567-edfg
+      verify-token-id: false
+
+  setting:
+    home-page-setting:
+      idle-minute: 60
+      default-mobile-path: http://192.168.10.129:9090
+    serverFacadeTarget: http://183.129.233.90:8890/api
+    sso-setting:
+      gdd:
+        redirect2EddWhenTmpLoginCodeEmpty: true
+    maintenance:
+      #是否自动备份数据库
+      backup-db:
+        #是否启用自动备份，一般不建议改，可忽略此配置
+        enabled: false
+    server-ip: 192.168.10.129
+    doc-server-path: d:/DOC_SERVER
+    function-points:
+      #是否启用分级管控
+      branch-dept-enabled: false
+  integration:
+    af:
+      remoting:
+        enabled: true
+        clientId: f2db5a2f-ca07-41f9-82b1-8649d77c3e92
+        clientSecret: 288a10bddc7a680a7dabd5e4dda5c338
+        anonymousAccount: 030050590320346524dingc1874ad3e752d85f35c2f4657eb6378f
+        serverTarget: https://disvback.flowyun.com
+  econage-batis:
+    #主数据库
+    primary:
+      datasource-props:
+        #'dataSource.url': jdbc:mariadb://192.168.0.59:3306/econagedb
+        'dataSource.url': jdbc:mariadb://192.168.0.88:3306/e10
+        'dataSource.user': newsoft
+        'dataSource.password': JgvoWM9vjRynoweL1khDmy6Tuhrgks86jOu5LjTSR5dOORo95vVyitbMV00HwwiGkLJH/C1OL1uMG0kFOA4cAwWyWDhaNAorIdhkWF+Xsxst2mPvXjTLTMMEMU/2Optj9orXZt9TLonIy3/BruE+DWYkkekIZ+YXH7T2XfhHdFetaSf1rCUdnmq6ZalDBvuVNe2Dv9erwkAw3VdgnspnPkxzwkF52m4v0JlorzNQf/dasuwk23RrcH5I/lPk3GThpNJFTMuKg7sRgPD6jVaV4kcsHlPMJ2pJ+NUmWLU6+1r4dVnl39lxcfI5d12QHUfPb5Ft8EiLXqswKoh203yErA==
+    #externals:
+    #  - name: wh88
+    #    local-date-Time-compatible: true
+    #    db-type: ORACLE
+    #    datasource-props:
+    #      jdbcUrl: jdbc:oracle:thin:@192.168.0.88:1521:wh
+    #      username: newsoft
+    #      password: econage
+    #      readOnly: true
+    #      minimumIdle: 10
+    #      maximumPoolSize: 20
+    #      driverClassName: oracle.jdbc.driver.OracleDriver
+    #      connectionTestQuery: select 1 from dual
+    #  - name: 88crm
+    #    local-date-Time-compatible: true
+    #    db-type: ORACLE
+    #    datasource-props:
+    #      jdbcUrl: jdbc:oracle:thin:@192.168.0.88:1521:crm
+    #      username: newsoft
+    #      password: econage
+    #      readOnly: true
+    #      minimumIdle: 10
+    #      maximumPoolSize: 20
+    #      driverClassName: oracle.jdbc.driver.OracleDriver
+    #      connectionTestQuery: select 1 from dual
+  dingding:
+    enterprise:
+      enabled: true
+      loged: true
+      hr-full-sync-enabled: true
+      corp-id: dingc1874ad3e752d85f35c2f4657eb6378f
+      app-id: 643780745
+      app-key: dingnds2mr1k9o2kh2tl
+      app-secret: rwA8bRTKAzSzDDRLh350Jcdvg4r9VAsMfYer0PXr5aq2WxX7pbrmWFKiHTdc1FT_
+  external:
+    ecm:
+      enabled: true
+    #e95流程
+    bpm95:
+      #e95流程 启动开关
+      enabled: true
+      #e95流程 提交弹窗确认：C；提交后返回到 办理页面：R ；提交后返回到 待办列表F；允许 组合 C,R 或C,F
+      do_after_wf_submit: C
+      asnlist_currtask_hidden: false
+      bpm_admin_role_def: HZBANK_SYSADMIN
+      sms_token_valid_duration: 120s
+      normal_admin: true
+      taskModel:
+        subWf:
+          asnType: 3
+          asnValue: 0@{"lgId":"0","mdId":"13","dataId":"105","dParent":"105","orgLevel":"0","roleNum":""}
+          autoSubmit: 1
+          subView: 1
+          mainView: 1
+        #审批环节
+        normal:
+          #业务标识
+          bizTag: 3
+          #允许意见征询
+          cosignable: 1
+          #允许委托办理
+          delegatable: 1
+        #开始环节
+        start:
+          #业务标识
+          bizTag: 1
+      branchDept:
+        manage: NEAREST,SUB,GRANTED_MANAGED
+      errorCode:
+        save: 10600
+        initwf: 10600,10603,10700,10710
+        drive: 10600,10603,10700,10710
+      api:
+        formView: -1
+
+      # 默认策略
+      defaultStrategy:
+        ## 环节办理人员为空 2：发起人来办理 3：流转到下一环节 4： 流程异常
+        empty_asn: 4
+        ## 环节超时 eventType ， 2：自动办理（同意，默认意见） 3：跳转指定环节 4：流程异常
+        overtime_task: 4
+        #办理类型  并签 PARALLEL,或签 EXCLUSIVE, 顺序签SEQUENCE(3);
+        drive_type: EXCLUSIVE
+spring:
+  elasticsearch:
+    rest:
+      uris:
+      - http://192.168.0.164:9200
