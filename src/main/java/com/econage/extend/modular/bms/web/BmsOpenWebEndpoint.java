@@ -2277,8 +2277,8 @@ public class BmsOpenWebEndpoint extends BasicControllerImpl {
         String host = "ocr.tencentcloudapi.com";
         String api_service = "ocr";
         String algorithm = "TC3-HMAC-SHA256";
-        String SECRET_ID = "AKID1rSpxtl4JLAk4BotQlsnY6NSItJVCuEI";
-        String SECRET_KEY = "4tSmqhJjuzqTrz4OkGYbOwEG3areCWbU";
+        String SECRET_ID = "";
+        String SECRET_KEY = "";
         String api_action = "VatInvoiceOCR";
         String api_imageUrl = "https://img.alicdn.com/tfs/TB1qIIfXAPoK1RjSZKbXXX1IXXa-808-523.jpg";
         int random_num = (int)(Math.random()*1000000);
@@ -2408,7 +2408,7 @@ public class BmsOpenWebEndpoint extends BasicControllerImpl {
         acae.setFormat("XML");
         acae.setVersion("2021-07-07");
         acae.setAction("RecognizeInvoice");
-        acae.setAccessKeyId("LTAI5t763HTRfH9uFB8NDdLU");
+        acae.setAccessKeyId("");
         acae.setSignatureMethod("HMAC-SHA1");
         acae.setSignatureNonce(IdWorker.getIdStr());
         acae.setSignatureVersion("1.0");
@@ -2430,7 +2430,7 @@ public class BmsOpenWebEndpoint extends BasicControllerImpl {
 //
         String apiUrl_suffix_encode = "AccessKeyId="+BmsHelper.percentEncode(acae.getAccessKeyId())+"&Action="+BmsHelper.percentEncode(acae.getAction())+"&Format="+BmsHelper.percentEncode(acae.getFormat())+"&SignatureMethod="+BmsHelper.percentEncode(acae.getSignatureMethod())+"&SignatureNonce="+BmsHelper.percentEncode(acae.getSignatureNonce())+"&SignatureVersion="+BmsHelper.percentEncode(acae.getSignatureVersion())+"&Timestamp="+BmsHelper.percentEncode(acae.getTimestamp())+"&Version="+BmsHelper.percentEncode(acae.getVersion());
         apiUrl_suffix_encode = "GET&%2F&" + BmsHelper.percentEncode(apiUrl_suffix_encode);
-        String secret = "pKWwk6KpGKt3aAAhcAST0lnhi741So";
+        String secret = "";
         secret += "&" ;
 
         SecretKeySpec signingKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA1");

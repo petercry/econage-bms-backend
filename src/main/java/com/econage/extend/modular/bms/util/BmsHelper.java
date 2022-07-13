@@ -78,7 +78,7 @@ public class BmsHelper {
     public static String getAfAccessToken( RestTemplate restTemplate) throws Exception {
         String grant_type = "client_credentials";
         String client_id = "f2db5a2f-ca07-41f9-82b1-8649d77c3e92";
-        String client_secret = "288a10bddc7a680a7dabd5e4dda5c338";
+        String client_secret = "";
         String tokenUrl = "https://disvback.flowyun.com/security/oauth/token";
 
         MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
