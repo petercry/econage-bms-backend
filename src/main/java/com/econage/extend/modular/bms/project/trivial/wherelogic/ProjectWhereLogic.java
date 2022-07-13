@@ -56,6 +56,16 @@ public class ProjectWhereLogic extends BasicWhereLogic {
     @WhereLogicField(wherePart = "(check_accept_doc_file_id_ is not null)")
     private Boolean checkAcceptDocFileIdIsNotNull;
 
+    private String totalStatus;
+
+    public String getTotalStatus() {
+        return totalStatus;
+    }
+
+    public void setTotalStatus(String totalStatus) {
+        this.totalStatus = totalStatus;
+    }
+
     public Integer getHasBidHitDoc() {
         return hasBidHitDoc;
     }

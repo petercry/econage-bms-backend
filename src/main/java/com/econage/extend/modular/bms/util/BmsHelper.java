@@ -19,6 +19,7 @@ import com.econage.extend.modular.bms.basic.entity.xls.BmsExpXlsHeaderEntity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.json.JSONObject;
 import org.springframework.http.*;
@@ -32,8 +33,14 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.ServletOutputStream;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.MessageDigest;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -315,5 +322,34 @@ public class BmsHelper {
             re = "1479407651479543809";
         }
         return re;
+    }
+    private static final String ENCODING = "UTF-8";
+    public static String percentEncode(String value) throws UnsupportedEncodingException{
+        return value != null ? URLEncoder.encode(value, ENCODING).replace("+", "%20").replace("*", "%2A").replace("%7E", "~") : null;
+    }
+    public static final Charset UTF8 = StandardCharsets.UTF_8;
+    public static String sha256Hex(String s) throws Exception {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] d = md.digest(s.getBytes(UTF8));
+        return Hex.encodeHexString(d).toLowerCase();
+    }
+    public static byte[] hmac256(byte[] key, String msg) throws Exception {
+        Mac mac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKeySpec = new SecretKeySpec(key, mac.getAlgorithm());
+        mac.init(secretKeySpec);
+        return mac.doFinal(msg.getBytes(UTF8));
+    }
+    public static String encryptToBase64(String filePath) {
+        if (filePath == null) {
+            return null;
+        }
+        try {
+            byte[] b = Files.readAllBytes(Paths.get(filePath));
+            return java.util.Base64.getEncoder().encodeToString(b);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

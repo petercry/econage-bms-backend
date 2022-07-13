@@ -7,19 +7,13 @@
 
     <artifactId>ee-bms</artifactId>
 
-    <properties>
-        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
-        <java.version>11</java.version>
-        <business.version>1.12.74</business.version>
-    </properties>
-
+    <!--直接继承business的pom，独立项目自身不维护版本，直接打包执行-->
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.6.2</version>
+        <groupId>com.econage.ee</groupId>
+        <artifactId>business-group</artifactId>
+        <version>1.15.34</version>
         <relativePath/>
     </parent>
-
 
     <repositories>
         <repository>
@@ -50,18 +44,36 @@
             <snapshots><enabled>false</enabled></snapshots>
         </pluginRepository>
     </pluginRepositories>
-    <dependencies>
 
+
+    <dependencies>
         <dependency>
             <groupId>com.econage.ee</groupId>
-            <artifactId>business-starter</artifactId>
-            <version>${business.version}</version>
+            <artifactId>business-builtin</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20211205</version>
         </dependency>
 
         <!--仅运行时可用的工具jar-->
@@ -104,7 +116,7 @@
         <dependency>
             <groupId>net.logstash.logback</groupId>
             <artifactId>logstash-logback-encoder</artifactId>
-            <version>7.0.1</version>
+            <version>7.2</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -132,31 +144,11 @@
 
     </dependencies>
 
-    <distributionManagement>
-        <repository>
-            <id>inner-public-maven</id>
-            <name>Nexus Release Repository</name>
-            <url>http://maven.econage.com:8081/repository/releases/</url>
-        </repository>
-        <snapshotRepository>
-            <id>inner-public-maven-snapshots</id>
-            <name>Nexus Snapshot Repository</name>
-            <url>http://maven.econage.com:8081/repository/snapshots/</url>
-        </snapshotRepository>
-    </distributionManagement>
     <build>
-        <finalName>eConageEE</finalName>
         <plugins>
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration>
-                    <skip>true</skip>
-                </configuration>
             </plugin>
         </plugins>
         <resources>

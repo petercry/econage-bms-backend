@@ -1,11 +1,16 @@
 package com.econage.extend.modular.bms.edd.remoting;
 
-import com.dingtalk.api.request.*;
-import com.dingtalk.api.response.*;
+import com.dingtalk.api.request.OapiAttendanceApproveCheckRequest;
+import com.dingtalk.api.request.OapiAttendanceApproveFinishRequest;
+import com.dingtalk.api.request.OapiAttendanceGetupdatedataRequest;
+import com.dingtalk.api.request.OapiAttendanceScheduleListbyusersRequest;
+import com.dingtalk.api.response.OapiAttendanceApproveCheckResponse;
+import com.dingtalk.api.response.OapiAttendanceApproveFinishResponse;
+import com.dingtalk.api.response.OapiAttendanceGetupdatedataResponse;
+import com.dingtalk.api.response.OapiAttendanceScheduleListbyusersResponse;
 import com.econage.integration.ali.dingding.enterprise.remoting.AbstractEddRemoting;
 import com.econage.integration.ali.dingding.enterprise.remoting.helper.EddClient;
 import lombok.NonNull;
-import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 

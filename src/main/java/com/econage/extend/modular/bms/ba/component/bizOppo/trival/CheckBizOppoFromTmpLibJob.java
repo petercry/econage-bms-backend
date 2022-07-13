@@ -1,43 +1,41 @@
 package com.econage.extend.modular.bms.ba.component.bizOppo.trival;
 
-import com.econage.extend.modular.bms.ba.component.bizOppo.entity.BizOppoEntity;
-import com.econage.extend.modular.bms.ba.component.bizOppo.entity.TmpLibBizOppoEntity;
+import com.econage.core.cron.CronJob;
 import com.econage.extend.modular.bms.ba.component.bizOppo.service.BizOppoService;
-import com.econage.extend.modular.bms.util.BmsHelper;
-import com.econage.extend.modular.bms.util.TmpLibGeneralEntity;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.IOUtils;
-import org.quartz.DisallowConcurrentExecution;
-import org.quartz.JobExecutionContext;
-import org.quartz.JobExecutionException;
+import com.econage.extend.modular.bms.config.BmsProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.Resource;
-import org.springframework.scheduling.quartz.QuartzJobBean;
 import org.springframework.web.client.RestTemplate;
 
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 
-@DisallowConcurrentExecution
-public class CheckBizOppoFromTmpLibJob extends QuartzJobBean {
+public class CheckBizOppoFromTmpLibJob implements CronJob {
     private static final Logger LOGGER = LoggerFactory.getLogger(CheckBizOppoFromTmpLibJob.class);
     private BizOppoService bizOppoService;
     private RestTemplate restTemplate;
+    private BmsProperties bmsProperties;
+
     @Autowired
-    void setWired(RestTemplate restTemplate , BizOppoService bizOppoService) {
+    void setWired(
+            RestTemplate restTemplate ,
+            BizOppoService bizOppoService,
+            BmsProperties bmsProperties
+    ) {
         this.restTemplate = restTemplate;
         this.bizOppoService = bizOppoService;
+        this.bmsProperties = bmsProperties;
     }
-    protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        try {
+
+    @Override
+    public String cronExpress() {
+        return bmsProperties.getCheckBizOppoFromTmpLibJobCron();
+    }
+
+    @Override
+    public void execute() throws Throwable {
             LOGGER.info("%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%start check biz oppo from tmp lib###" + LocalDateTime.now());
             String r = "";
 //            String url = "http://192.168.4.22:30003/zentao/openapi/trial/list?dateTime=";
@@ -76,8 +74,5 @@ public class CheckBizOppoFromTmpLibJob extends QuartzJobBean {
 //            }
 //            r = "url:" + url + "$$$" + respStr;
             LOGGER.info( "check end#" +r);
-        } catch (Throwable var3) {
-            throw new JobExecutionException(var3);
-        }
     }
 }

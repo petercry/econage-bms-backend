@@ -1,5 +1,7 @@
 package com.econage.extend.modular.bms.ba.component.auth.web;
 
+import com.econage.base.security.SecurityHelper;
+import com.econage.base.security.userdetials.entity.RuntimeUserDetails;
 import com.econage.core.web.extension.controller.BasicControllerImpl;
 import com.econage.core.web.extension.response.BasicDataGridRows;
 import com.econage.extend.modular.bms.ba.component.auth.entity.BaAuthEntity;
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,6 +49,29 @@ public class BaAuthWebEndpoint extends BasicControllerImpl {
     }
     private final String[] defaultSort = {"order_seq_"};
     private final String[] defaultOrder = {"desc"};
+    //查询当前用户是否在该客户团队中
+    @GetMapping("/check/{baId}")
+    protected Integer checkAuth(BaAuthWhereLogic whereLogic){
+        Integer re = 0 ;
+        RuntimeUserDetails userAccount = SecurityHelper.getRuntimeUserAccount();
+        if(userAccount.isAdmin()) return 1;
+        String userName = userAccount.getUsername();
+        String userId = userAccount.getUserId();
+        if(ArrayUtils.isEmpty(whereLogic.getSort())){
+            whereLogic.setSort(defaultSort);
+        }
+        if(ArrayUtils.isEmpty(whereLogic.getOrder())){
+            whereLogic.setOrder(defaultOrder);
+        }
+        whereLogic.setStatusTarget(true);
+        List<BaAuthEntity> authEntities = baAuthService.selectListByWhereLogic(whereLogic);
+        for(BaAuthEntity bae : authEntities){
+            if(bae.getLinkId().equals(userAccount.getUserId())){
+                re = 1;break;
+            }
+        }
+        return re;
+    }
     //查询团队成员列表
     @GetMapping("/search/{baId}")
     protected BasicDataGridRows searchTeamMember(BaAuthWhereLogic whereLogic){

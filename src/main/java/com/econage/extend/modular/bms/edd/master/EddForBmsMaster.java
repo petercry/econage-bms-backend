@@ -1,7 +1,9 @@
 package com.econage.extend.modular.bms.edd.master;
 
-import com.dingtalk.api.request.OapiChatSendRequest;
-import com.dingtalk.api.response.*;
+import com.dingtalk.api.response.OapiAttendanceApproveCheckResponse;
+import com.dingtalk.api.response.OapiAttendanceApproveFinishResponse;
+import com.dingtalk.api.response.OapiAttendanceGetupdatedataResponse;
+import com.dingtalk.api.response.OapiAttendanceScheduleListbyusersResponse;
 import com.econage.base.organization.org.service.helper.UserUnionQuery;
 import com.econage.core.basic.time.DateTimeConverterUtil;
 import com.econage.core.basic.util.SystemClock;
@@ -9,7 +11,6 @@ import com.econage.extend.modular.bms.edd.remoting.EddForBmsRemoting;
 import com.econage.integration.ali.dingding.enterprise.master.AbstractEddMaster;
 import com.econage.integration.ali.dingding.enterprise.master.EddAuthMaster;
 import lombok.NonNull;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;

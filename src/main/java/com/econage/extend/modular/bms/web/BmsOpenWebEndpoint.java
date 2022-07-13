@@ -1,5 +1,8 @@
 package com.econage.extend.modular.bms.web;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.dingtalk.api.request.OapiAttendanceApproveFinishRequest;
 import com.dingtalk.api.response.OapiAttendanceApproveCheckResponse;
 import com.dingtalk.api.response.OapiAttendanceApproveFinishResponse;
@@ -36,6 +39,7 @@ import com.econage.extend.modular.bms.ba.component.bizOppo.entity.TmpLibBizOppoE
 import com.econage.extend.modular.bms.ba.component.bizOppo.service.BizOppoService;
 import com.econage.extend.modular.bms.ba.component.event.entity.BmsBaEventEntity;
 import com.econage.extend.modular.bms.ba.component.event.service.BmsBaEventService;
+import com.econage.extend.modular.bms.ba.entity.BmsBaEntity;
 import com.econage.extend.modular.bms.ba.service.BmsBaBriefService;
 import com.econage.extend.modular.bms.ba.service.BmsBaService;
 import com.econage.extend.modular.bms.ba.trivial.wherelogic.BaWhereLogic;
@@ -58,6 +62,7 @@ import com.econage.extend.modular.bms.project.service.*;
 import com.econage.extend.modular.bms.project.trivial.wherelogic.ProjectAssociationWhereLogic;
 import com.econage.extend.modular.bms.project.trivial.wherelogic.ProjectWhereLogic;
 import com.econage.extend.modular.bms.util.*;
+import com.econage.extend.modular.bms.util.tencentApi.InvoiceInfoEntity;
 import com.econage.integration.af.entity.dto.AfDriveTaskResponseDTO;
 import com.econage.integration.af.entity.model.AfDriveTaskModel;
 import com.econage.integration.af.entity.model.AfWorkflowInstModel;
@@ -68,42 +73,47 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableList;
-import okhttp3.MediaType;
-import okhttp3.Request;
-import okhttp3.MultipartBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
+import okhttp3.*;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
-import org.mvel2.util.Make;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.util.Assert;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
-import org.xnio.IoUtils;
 
+import javax.crypto.Mac;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import javax.servlet.http.HttpServletRequest;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -2233,5 +2243,241 @@ public class BmsOpenWebEndpoint extends BasicControllerImpl {
         Response response = client.newCall(request).execute();
         String responseData = response.body().string();
         return responseData;
+    }
+    @PostMapping("/invoiceRecognize2")
+    protected InvoiceInfoEntity invoiceRecognize2(@RequestParam("file") String fileStr) throws Exception {
+        JSONObject fileObj =  (JSONObject) JSON.parse(fileStr);
+        JSONArray attArray = fileObj.getJSONArray("attachments");
+        JSONObject attNode = (JSONObject)attArray.get(0);
+        //String fileHeaderId = "1543618136811462658";
+        String fileHeaderId = attNode.getString("fileHeaderId");
+//        String bpmAppId = "1543602807867662337";
+//        String bpmAppSecret = "1543602922695122945";
+        String bpmAppId = "1544576076071936002";
+        String bpmAppSecret = "1544576140097986561";
+        String bpmUrlPrefix = "http://192.168.1.35:82/api";
+//        String getTokenUrl = "http://192.168.0.27:7077/oauth2/access-token?appid="+bpmAppId+"&secret="+bpmAppSecret;
+        String getTokenUrl = bpmUrlPrefix + "/oauth2/access-token?appid="+bpmAppId+"&secret="+bpmAppSecret;
+        ResponseEntity<String> getTokenRe = restTemplate.getForEntity(getTokenUrl, String.class);
+        //System.out.println("## getTokenReStr:" + getTokenReStr.getBody().toString());
+        String accessToken = getTokenRe.getBody();
+
+        //String getFileUrl = "http://192.168.0.27:7077/web-service/standard/file-manager/download/single?fileHeaderId="+fileHeaderId+"&contentType=base64";
+        String getFileUrl = bpmUrlPrefix + "/web-service/standard/file-manager/download/single?fileHeaderId="+fileHeaderId+"&contentType=base64";
+        HttpHeaders getFileHeaders = new HttpHeaders();
+        getFileHeaders.add("eco-oauth2-token" , accessToken);
+        HttpEntity<String> getFileReqEntity = new HttpEntity<String>(null, getFileHeaders);
+        ResponseEntity<String> getFileRe = restTemplate.exchange(getFileUrl, HttpMethod.GET, getFileReqEntity, String.class);
+        String fileBase64Code = getFileRe.getBody();
+        fileBase64Code=fileBase64Code.replaceAll("[\\t\\n\\r]", "");
+        //fileBase64Code="abc";
+
+        InvoiceInfoEntity iie = new InvoiceInfoEntity();
+        String response_content = "";
+        String host = "ocr.tencentcloudapi.com";
+        String api_service = "ocr";
+        String algorithm = "TC3-HMAC-SHA256";
+        String SECRET_ID = "AKID1rSpxtl4JLAk4BotQlsnY6NSItJVCuEI";
+        String SECRET_KEY = "4tSmqhJjuzqTrz4OkGYbOwEG3areCWbU";
+        String api_action = "VatInvoiceOCR";
+        String api_imageUrl = "https://img.alicdn.com/tfs/TB1qIIfXAPoK1RjSZKbXXX1IXXa-808-523.jpg";
+        int random_num = (int)(Math.random()*1000000);
+        String api_version = "2018-11-19";
+        String api_region = "ap-shanghai";
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        String httpRequestMethod = "POST";
+        String canonicalUri = "/";
+        String canonicalQueryString = "";
+        String canonicalHeaders = "content-type:application/json; charset=utf-8\n" + "host:" + host + "\n";
+        String signedHeaders = "content-type;host";
+
+        //String payload = "{\"ImageUrl\":\""+api_imageUrl+"\"}";
+        //String payload = "{\"ImageBase64\":\""+fileBase64Code+"\",\"IsPdf\":true}";
+        String payload = "{\"ImageBase64\":\""+fileBase64Code+"\",\"IsPdf\":true}";
+        String hashedRequestPayload = BmsHelper.sha256Hex(payload);
+        String canonicalRequest = httpRequestMethod + "\n" + canonicalUri + "\n" + canonicalQueryString + "\n" + canonicalHeaders + "\n" + signedHeaders + "\n" + hashedRequestPayload;
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        String date = sdf.format(new Date(Long.valueOf(timestamp + "000")));
+        String credentialScope = date + "/" + api_service + "/" + "tc3_request";
+        String hashedCanonicalRequest = BmsHelper.sha256Hex(canonicalRequest);
+        String stringToSign = algorithm + "\n" + timestamp + "\n" + credentialScope + "\n" + hashedCanonicalRequest;
+        byte[] secretDate = BmsHelper.hmac256(("TC3" + SECRET_KEY).getBytes(BmsHelper.UTF8), date);
+        byte[] secretService = BmsHelper.hmac256(secretDate, api_service);
+        byte[] secretSigning = BmsHelper.hmac256(secretService, "tc3_request");
+        String signature = Hex.encodeHexString(BmsHelper.hmac256(secretSigning, stringToSign)).toLowerCase();
+        String authorization = algorithm + " " + "Credential=" + SECRET_ID + "/" + credentialScope + ", " + "SignedHeaders=" + signedHeaders + ", " + "Signature=" + signature;
+        CloseableHttpClient httpClient = HttpClients.createDefault();
+        String url = "https://ocr.tencentcloudapi.com/";
+        HttpPost httpPost = new HttpPost(url);
+        httpPost.setHeader("Authorization", authorization);
+        httpPost.setHeader("Content-Type", "application/json; charset=utf-8");
+        httpPost.setHeader("Host", host);
+        httpPost.setHeader("X-TC-Action", api_action);
+        httpPost.setHeader("X-TC-Timestamp", timestamp);
+        httpPost.setHeader("X-TC-Version", api_version);
+        httpPost.setHeader("X-TC-Region", api_region);
+
+        StringEntity se = new StringEntity(payload);
+        se.setContentType("text/json");
+        httpPost.setEntity(se);
+
+        CloseableHttpResponse response = httpClient.execute(httpPost);
+        try {
+            org.apache.http.HttpEntity resEntity = response.getEntity();
+            if (resEntity != null) {
+                response_content = EntityUtils.toString(resEntity, "UTF-8");
+            }
+        } finally {
+            response.close();
+        }
+        if(!StringUtils.isEmpty(response_content)){
+            JSONObject totalObj =  (JSONObject) JSON.parse(response_content);
+            JSONObject responseObj = (JSONObject)totalObj.get("Response");
+            JSONArray invoiceInfoList = (JSONArray)responseObj.get("VatInvoiceInfos");
+            for(int i=0;i<invoiceInfoList.size();i++) {
+                JSONObject infoNode = invoiceInfoList.getJSONObject(i);
+                String checkName = infoNode.getString("Name");
+                String checkValue = infoNode.getString("Value");
+                if(checkName.contains("销售方识别号")){
+                    iie.setSellerId(checkValue);
+                }else if(checkName.contains("销售方名称")){
+                    iie.setSellerName(checkValue);
+                }else if(checkName.contains("购买方识别号")){
+                    iie.setBuyerId(checkValue);
+                }else if(checkName.contains("购买方名称")){
+                    iie.setBuyerName(checkValue);
+                }else if(checkName.equals("发票代码")){
+                    iie.setInvoiceCode(checkValue);
+                }else if(checkName.contains("发票名称")){
+                    iie.setInvoiceName(checkValue);
+                }else if(checkName.equals("发票号码")){
+                    iie.setInvoiceNo(checkValue);
+                }else if(checkName.contains("开票日期")){
+                    iie.setMakeOutDate(checkValue);
+                }else if(checkName.contains("机器编号")){
+                    iie.setMachineCode(checkValue);
+                }else if(checkName.contains("校验码")){
+                    iie.setProofCode(checkValue);
+                }else if(checkName.contains("服务名称")){ //货物或应税劳务、服务名称
+                    iie.setGoodsName(checkValue);
+                }else if(checkName.contains("数量")){
+                    iie.setGoodsNum(checkValue);
+                }else if(checkName.contains("单价")){
+                    iie.setSinglePriceWithoutTax(checkValue);
+                }else if(checkName.equals("金额")){
+                    iie.setPriceAmountWithoutTax(checkValue);
+                }else if(checkName.contains("税率")){
+                    iie.setTaxRate(checkValue);
+                }else if(checkName.contains("税额")){
+                    iie.setTaxAmount(checkValue);
+                }else if(checkName.contains("合计金额")){
+                    //¥75.21
+                    if(!checkValue.substring(0,1).matches("[0-9]+")){
+                        checkValue = checkValue.substring(1);
+                    }
+                    iie.setTotalAmountWithoutTax(checkValue);
+                }else if(checkName.contains("合计税额")){
+                    iie.setTotalTaxAmount(checkValue);
+                }else if(checkName.contains("价税合计")){
+                    iie.setRealTotalAmountUpper(checkValue);
+                }else if(checkName.contains("小写金额")){
+                    //"¥88.00
+                    if(!checkValue.substring(0,1).matches("[0-9]+")){
+                        checkValue = checkValue.substring(1);
+                    }
+                    iie.setRealTotalAmount(checkValue);
+                }else if(checkName.contains("销售方地址")){
+                    iie.setSellerAddressPhone(checkValue);
+                }else if(checkName.contains("销售方开户行")){
+                    iie.setSellerBankInfo(checkValue);
+                }else if(checkName.contains("开票人")){
+                    iie.setMakeOutPerson(checkValue);
+                }else if(checkName.contains("发票消费类型")){
+                    iie.setInvoiceConsumeType(checkValue);
+                }else if(checkName.contains("发票类型")){
+                    iie.setInvoiceType(checkValue);
+                }
+            }
+        }
+        return iie;
+    }
+    @PostMapping("/invoiceRecognize")
+    protected String invoiceRecognize() throws Exception {
+        AliCloudApiEntity acae = new AliCloudApiEntity();
+        acae.setFormat("XML");
+        acae.setVersion("2021-07-07");
+        acae.setAction("RecognizeInvoice");
+        acae.setAccessKeyId("LTAI5t763HTRfH9uFB8NDdLU");
+        acae.setSignatureMethod("HMAC-SHA1");
+        acae.setSignatureNonce(IdWorker.getIdStr());
+        acae.setSignatureVersion("1.0");
+
+        LocalDateTime localDateTime = LocalDateTime.now();
+        Date date = Date.from(localDateTime.atZone(ZoneOffset.ofHours(16)).toInstant());
+
+        SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat df2 = new SimpleDateFormat("HH:mm:ss");
+        String timeStr1 = df1.format(date);
+        String timeStr2 = df2.format(date);
+        String timeStr = timeStr1 + "T" + timeStr2 + "Z";
+        //2021-07-07T12:00:00Z
+        acae.setTimestamp(timeStr);
+
+        String apiUrl_suffix = "AccessKeyId="+acae.getAccessKeyId()+"&Action="+acae.getAction()+"&Format="+acae.getFormat()+"&SignatureMethod="+acae.getSignatureMethod()+"&SignatureNonce="+acae.getSignatureNonce()+"&SignatureVersion="+acae.getSignatureVersion()+"&Timestamp="+acae.getTimestamp()+"&Version="+acae.getVersion();
+
+//        String apiUrl_suffix_encode = "GET&%2F&" + java.net.URLEncoder.encode(apiUrl_suffix,"UTF-8");
+//
+        String apiUrl_suffix_encode = "AccessKeyId="+BmsHelper.percentEncode(acae.getAccessKeyId())+"&Action="+BmsHelper.percentEncode(acae.getAction())+"&Format="+BmsHelper.percentEncode(acae.getFormat())+"&SignatureMethod="+BmsHelper.percentEncode(acae.getSignatureMethod())+"&SignatureNonce="+BmsHelper.percentEncode(acae.getSignatureNonce())+"&SignatureVersion="+BmsHelper.percentEncode(acae.getSignatureVersion())+"&Timestamp="+BmsHelper.percentEncode(acae.getTimestamp())+"&Version="+BmsHelper.percentEncode(acae.getVersion());
+        apiUrl_suffix_encode = "GET&%2F&" + BmsHelper.percentEncode(apiUrl_suffix_encode);
+        String secret = "pKWwk6KpGKt3aAAhcAST0lnhi741So";
+        secret += "&" ;
+
+        SecretKeySpec signingKey = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA1");
+        Mac mac = Mac.getInstance("HmacSHA1");
+        mac.init(signingKey);
+        byte[] rawHmac = mac.doFinal(apiUrl_suffix_encode.getBytes(StandardCharsets.UTF_8));
+
+        //String signature_ori0 = new String(Base64.decodeBase64(rawHmac));
+
+        String signature_ori1 = new String(Base64.encodeBase64(rawHmac), StandardCharsets.UTF_8);
+        String signature_ori2 = Base64.encodeBase64String(rawHmac);
+        String signature_ori3 = com.taobao.api.internal.util.Base64.encodeToString(rawHmac , true);
+        //String signature = Base64Encoder.encode(rawHmac);
+
+        String signature = java.net.URLEncoder.encode(signature_ori1, StandardCharsets.UTF_8);
+
+        String apiUrl = "http://ocr-api.cn-hangzhou.aliyuncs.com/?" + apiUrl_suffix + "&Signature=" + signature ;
+        System.out.println("$$apiUrl_suffix_encode:" + apiUrl_suffix_encode);
+        ResponseEntity<String> reStr = restTemplate.getForEntity(apiUrl, String.class);
+        System.out.println("## reStr:" + reStr);
+        return reStr.toString();
+
+    }
+    @PostMapping("/crmBot")
+    protected JSONObject triggerCrmBot(   @RequestBody JSONObject obj ) throws Exception {
+        String content = obj.getJSONObject("text").getString("content").trim();
+        String groupName = obj.getString("conversationTitle");
+        String baId = "";
+        if(groupName.indexOf("#")>0){
+            baId = (groupName.trim()).substring(groupName.lastIndexOf("#")+1);
+        }
+        BmsBaEntity baEntity = bmsBaService.selectById(baId);
+        JSONObject reObj = new JSONObject();
+        if(content.equals("项目预算")){
+            JSONObject contentObj = new JSONObject();
+            contentObj.put("content","项目预算：" + baEntity.getProjectBudget() + "万元");
+            reObj.put("text",contentObj);
+            reObj.put("msgtype","text");
+        }else{
+            JSONObject linkObj = new JSONObject();
+            linkObj.put("title" , "点此打开客户详情卡片");
+            linkObj.put("text" , baEntity.getBaName());
+            linkObj.put("messageUrl" , "http://183.129.233.90:8890/#/webRoot/webPlatform/?compFlag=baInfo&jumpBaId="+baId);
+            linkObj.put("picUrl" , "http://183.129.233.90:8890/assets/img/crm.png");
+            reObj.put("link" , linkObj);
+            reObj.put("msgtype","link");
+        }
+        return reObj;
     }
 }
