@@ -52,7 +52,7 @@ public class BmsProjectWebEndpoint extends BasicControllerImpl {
     private final String[] defaultOrder = {"desc"};
     private final String[] defaultSort = {"order_seq_"};
     /*
-     * 添加-post
+     * 添加项目-post
      * */
     @PostMapping("")
     protected BmsProjectEntity newEntity(
