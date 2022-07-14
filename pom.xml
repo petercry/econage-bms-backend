@@ -30,11 +30,6 @@
             <releases><enabled>true</enabled></releases>
             <snapshots><enabled>false</enabled></snapshots>
         </repository>
-        <repository>
-            <id>innerMaven</id>
-            <name>innerMaven</name>
-            <url>http://192.168.1.237:8081/repository/public/</url>
-        </repository>
     </repositories>
     <pluginRepositories>
         <pluginRepository>
@@ -167,5 +162,29 @@
             </resource>
         </resources>
     </build>
+
+    <profiles>
+        <profile>
+            <id>Intranet</id>
+            <repositories>
+                <repository>
+                    <id>innerMaven</id>
+                    <name>innerMaven</name>
+                    <url>http://192.168.1.237:8081/repository/public/</url>
+                </repository>
+            </repositories>
+        </profile>
+        <profile>
+            <id>Internet</id>
+            <repositories>
+                <repository>
+                    <id>eco-aliyun-maven</id>
+                    <name>eco-aliyun-maven</name>
+                    <!-- 使用阿里云拉取私有组件 -->
+                    <url>https://packages.aliyun.com/maven/repository/2218064-release-S5W8y3</url>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 
 </project>

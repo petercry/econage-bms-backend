@@ -73,35 +73,9 @@ econage:
     #主数据库
     primary:
       datasource-props:
-        #'dataSource.url': jdbc:mariadb://192.168.0.59:3306/econagedb
         'dataSource.url': jdbc:mariadb://192.168.0.88:3306/e10
         'dataSource.user': newsoft
         'dataSource.password': JgvoWM9vjRynoweL1khDmy6Tuhrgks86jOu5LjTSR5dOORo95vVyitbMV00HwwiGkLJH/C1OL1uMG0kFOA4cAwWyWDhaNAorIdhkWF+Xsxst2mPvXjTLTMMEMU/2Optj9orXZt9TLonIy3/BruE+DWYkkekIZ+YXH7T2XfhHdFetaSf1rCUdnmq6ZalDBvuVNe2Dv9erwkAw3VdgnspnPkxzwkF52m4v0JlorzNQf/dasuwk23RrcH5I/lPk3GThpNJFTMuKg7sRgPD6jVaV4kcsHlPMJ2pJ+NUmWLU6+1r4dVnl39lxcfI5d12QHUfPb5Ft8EiLXqswKoh203yErA==
-    #externals:
-    #  - name: wh88
-    #    local-date-Time-compatible: true
-    #    db-type: ORACLE
-    #    datasource-props:
-    #      jdbcUrl: jdbc:oracle:thin:@192.168.0.88:1521:wh
-    #      username: newsoft
-    #      password: econage
-    #      readOnly: true
-    #      minimumIdle: 10
-    #      maximumPoolSize: 20
-    #      driverClassName: oracle.jdbc.driver.OracleDriver
-    #      connectionTestQuery: select 1 from dual
-    #  - name: 88crm
-    #    local-date-Time-compatible: true
-    #    db-type: ORACLE
-    #    datasource-props:
-    #      jdbcUrl: jdbc:oracle:thin:@192.168.0.88:1521:crm
-    #      username: newsoft
-    #      password: econage
-    #      readOnly: true
-    #      minimumIdle: 10
-    #      maximumPoolSize: 20
-    #      driverClassName: oracle.jdbc.driver.OracleDriver
-    #      connectionTestQuery: select 1 from dual
   dingding:
     enterprise:
       enabled: true
